@@ -2,6 +2,7 @@ import { ModelNames } from './types';
 import { camelizeIt } from './utils';
 import { executeLocalListeners } from './listeners';
 import { publishToMqtt } from './mqtt';
+import { logger } from './logger';
 
 /**
  * Run both local listeners and publish to MQTT
@@ -20,6 +21,6 @@ export async function runListeners<T>(
   try {
     await publishToMqtt(model, args, result, operation);
   } catch (err) {
-    console.error(`MQTT publish for ${model} failed`, err);
+    logger.error(`MQTT publish for ${model} failed`, err);
   }
 }

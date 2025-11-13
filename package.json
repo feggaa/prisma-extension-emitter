@@ -1,6 +1,6 @@
 {
   "name": "prisma-extension-emitter",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "bin": {
     "prisma-emitter": "dist/cli.js"
   },

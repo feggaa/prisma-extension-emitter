@@ -12,13 +12,15 @@ export type {
   ModelNames,
   MqttConfig,
   ExtensionOptions,
-  MqttEventPayload
+  MqttEventPayload,
+  LogLevel
 } from './types';
 
 // Export main functions
 export { listenerExtensionConfig } from './extension';
 export { prismaEventListener } from './event-listener';
 export { disconnectMqtt } from './mqtt';
+export { logger } from './logger';
 
 // Export listeners registry (for advanced use cases)
 export { listeners } from './listeners';

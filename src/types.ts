@@ -30,6 +30,9 @@ export interface MqttConfig {
   topicPrefix?: string; // Default: 'prisma/events'
 }
 
+// Log levels
+export type LogLevel = 'none' | 'error' | 'warn' | 'info' | 'debug';
+
 // Extension options
 export type ExtensionOptions = {
   emit?: {
@@ -39,6 +42,7 @@ export type ExtensionOptions = {
     emitOnUpdateMany?: boolean;
   } | boolean;
   mqtt?: MqttConfig;
+  logLevel?: LogLevel; // Default: 'none'
 };
 
 // MQTT event payload

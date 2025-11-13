@@ -1,11 +1,15 @@
 import { ExtensionOptions } from './types';
 import { initializeMqtt } from './mqtt';
 import { runListeners } from './runner';
+import { logger } from './logger';
 
 /**
  * Create Prisma extension configuration
  */
 export function listenerExtensionConfig(options?: ExtensionOptions) {
+  // Set log level (default: 'none')
+  logger.setLevel(options?.logLevel ?? 'none');
+  
   // Initialize MQTT if configured
   if (options?.mqtt) {
     initializeMqtt(options.mqtt);

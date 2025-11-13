@@ -1,6 +1,7 @@
 import * as mqtt from 'mqtt';
 import { MqttConfig, MqttEventPayload, ModelNames, ListenerConfig } from './types';
 import { matches } from './listeners';
+import { logger } from './logger';
 
 // MQTT client instances
 let mqttPublisher: mqtt.MqttClient | null = null;
@@ -21,18 +22,18 @@ export function initializeMqtt(config: MqttConfig): void {
     mqttPublisher = mqtt.connect(config.brokerUrl, config.options);
     
     mqttPublisher.on('connect', () => {
-      console.log('MQTT client connected to broker:', config.brokerUrl);
+      logger.info('MQTT client connected to broker:', config.brokerUrl);
     });
     
     mqttPublisher.on('error', (err) => {
-      console.error('MQTT connection error:', err);
+      logger.error('MQTT connection error:', err);
     });
     
     mqttPublisher.on('close', () => {
-      console.log('MQTT connection closed');
+      logger.debug('MQTT connection closed');
     });
   } catch (error) {
-    console.error('Failed to initialize MQTT client:', error);
+    logger.error('Failed to initialize MQTT client:', error);
   }
 }
 
@@ -63,9 +64,10 @@ export async function publishToMqtt(
   return new Promise<void>((resolve, reject) => {
     mqttPublisher!.publish(topic, JSON.stringify(payload), { qos: 1 }, (err) => {
       if (err) {
-        console.error(`Failed to publish to MQTT topic ${topic}:`, err);
+        logger.error(`Failed to publish to MQTT topic ${topic}:`, err);
         reject(err);
       } else {
+        logger.debug('Published event to MQTT:', topic);
         resolve();
       }
     });
@@ -91,11 +93,11 @@ function ensureSubscriberInitialized(): void {
     mqttSubscriber = mqtt.connect(mqttConfig.brokerUrl, subscriberOptions);
     
     mqttSubscriber.on('connect', () => {
-      console.log('MQTT subscriber connected to broker:', mqttConfig!.brokerUrl);
+      logger.info('MQTT subscriber connected to broker:', mqttConfig!.brokerUrl);
     });
     
     mqttSubscriber.on('error', (err) => {
-      console.error('MQTT subscriber error:', err);
+      logger.error('MQTT subscriber error:', err);
     });
     
     mqttSubscriber.on('message', (topic, message) => {
@@ -103,10 +105,10 @@ function ensureSubscriberInitialized(): void {
     });
     
     mqttSubscriber.on('close', () => {
-      console.log('MQTT subscriber connection closed');
+      logger.debug('MQTT subscriber connection closed');
     });
   } catch (error) {
-    console.error('Failed to initialize MQTT subscriber:', error);
+    logger.error('Failed to initialize MQTT subscriber:', error);
   }
 }
 
@@ -130,12 +132,12 @@ function handleMqttMessage(topic: string, message: Buffer): void {
         try {
           await config.listener({ args, model, result });
         } catch (err) {
-          console.error(`Remote listener for ${model} failed`, err);
+          logger.error(`Remote listener for ${model} failed`, err);
         }
       }
     });
   } catch (err) {
-    console.error('Failed to parse MQTT message:', err);
+    logger.error('Failed to parse MQTT message:', err);
   }
 }
 
@@ -147,14 +149,14 @@ export function subscribeToMqttTopic(
   config: ListenerConfig<any>
 ): void {
   if (!mqttConfig?.enabled) {
-    console.warn('MQTT not configured. Cannot subscribe to remote events.');
+    logger.warn('MQTT not configured. Cannot subscribe to remote events.');
     return;
   }
   
   ensureSubscriberInitialized();
   
   if (!mqttSubscriber) {
-    console.error('Failed to initialize MQTT subscriber');
+    logger.error('Failed to initialize MQTT subscriber');
     return;
   }
   
@@ -169,9 +171,9 @@ export function subscribeToMqttTopic(
     // Actually subscribe to MQTT topic
     mqttSubscriber.subscribe(topic, (err) => {
       if (err) {
-        console.error(`Failed to subscribe to MQTT topic ${topic}:`, err);
+        logger.error(`Failed to subscribe to MQTT topic ${topic}:`, err);
       } else {
-        console.log(`Subscribed to MQTT topic: ${topic}`);
+        logger.info(`Subscribed to MQTT topic: ${topic}`);
       }
     });
   }
@@ -201,9 +203,9 @@ export function unsubscribeFromMqttTopic(
     if (subscribers.size === 0) {
       mqttSubscriber.unsubscribe(topic, (err) => {
         if (err) {
-          console.error(`Failed to unsubscribe from MQTT topic ${topic}:`, err);
+          logger.error(`Failed to unsubscribe from MQTT topic ${topic}:`, err);
         } else {
-          console.log(`Unsubscribed from MQTT topic: ${topic}`);
+          logger.debug(`Unsubscribed from MQTT topic: ${topic}`);
         }
       });
       mqttSubscriptions.delete(topic);
@@ -222,7 +224,7 @@ export function disconnectMqtt(): Promise<void> {
     if (mqttPublisher) {
       promises.push(new Promise<void>((res) => {
         mqttPublisher!.end(false, {}, () => {
-          console.log('MQTT publisher disconnected');
+          logger.debug('MQTT publisher disconnected');
           mqttPublisher = null;
           mqttConfig = null;
           res();
@@ -234,7 +236,7 @@ export function disconnectMqtt(): Promise<void> {
     if (mqttSubscriber) {
       promises.push(new Promise<void>((res) => {
         mqttSubscriber!.end(false, {}, () => {
-          console.log('MQTT subscriber disconnected');
+          logger.debug('MQTT subscriber disconnected');
           mqttSubscriber = null;
           mqttSubscriptions.clear();
           res();

@@ -1,4 +1,5 @@
 import { ListenerConfig, ModelNames } from './types';
+import { logger } from './logger';
 
 // Listeners map: model name to array of configs
 export const listeners: Record<ModelNames, ListenerConfig<any>[]> = {} as any;
@@ -48,7 +49,7 @@ export async function executeLocalListeners<T>(
       try {
         await cfg.listener({ args, model, result });
       } catch (err) {
-        console.error(`Listener for ${model} failed`, err);
+        logger.error(`Listener for ${model} failed`, err);
       }
     }
   }
