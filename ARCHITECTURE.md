@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Version 2.1.9**
+**Version 2.1.10**
 
 ## Zero MQTT Code Required
 
@@ -208,7 +208,7 @@ Server 2:                 Listener executes ✓ (source: 'remote' via MQTT)
 Server 3:                 Listener executes ✓ (source: 'remote' via MQTT)
 ```
 
-### Remote-Only (NEW in v2.1.9!)
+### Remote-Only (NEW in v2.1.10!)
 
 ```typescript
 prismaEventListener("user", {
@@ -356,7 +356,7 @@ Receives:
 }
 ```
 
-### Event ID Generation (NEW in v2.1.9!)
+### Event ID Generation (NEW in v2.1.10!)
 
 The `eventId` is automatically generated for each event:
 
@@ -372,7 +372,7 @@ function generateEventId(model, operation, args, result) {
 1. Processed locally (source: 'local')
 2. Received back via MQTT (source: 'remote')
 
-### Automatic Event Deduplication (NEW in v2.1.9!)
+### Automatic Event Deduplication (NEW in v2.1.10!)
 
 ```
 Event Flow with Deduplication:
@@ -567,7 +567,7 @@ Deduplication check:       <0.1ms (in-memory lookup)
 Total overhead: ~5-20ms for remote events
 ```
 
-## New Features in v2.1.9
+## New Features in v2.1.10
 
 ### 1. Event Source Tracking
 

@@ -5,7 +5,7 @@ import { generateTypes } from './generator';
 
 async function main() {
   const argv = yargs(hideBin(process.argv))
-    .version('2.1.9')
+    .version('2.1.10')
     .alias('v', 'version')
     .command(
       'generate',
