@@ -1,11 +1,15 @@
 import type { PrismaClient } from '@prisma/client';
 import * as mqtt from 'mqtt';
 
+// Emit configuration type
+export type EmitConfig = boolean | { local: boolean; remote: boolean };
+
 // Listener function type
 export type ListenerFunction<T> = (payload: {
   args: any;
   model: ModelNames;
   result: T;
+  source: 'local' | 'remote'; // Indicates where the event originated
 }) => Promise<void> | void;
 
 // Listener configuration
@@ -14,6 +18,7 @@ export interface ListenerConfig<T> {
   data?: Record<string, any>;
   listener: ListenerFunction<T>;
   allowRemote?: boolean; // If true, also listen to MQTT events from other servers
+  remoteOnly?: boolean; // If true, only trigger for MQTT events, not local events
 }
 
 // Derive model names from PrismaClient delegates
@@ -52,4 +57,5 @@ export interface MqttEventPayload {
   args: any;
   result: any;
   timestamp: string;
+  eventId?: string; // Optional event ID for deduplication
 }

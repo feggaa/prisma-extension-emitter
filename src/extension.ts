@@ -1,7 +1,26 @@
-import { ExtensionOptions } from './types';
+import { ExtensionOptions, EmitConfig } from './types';
 import { initializeMqtt } from './mqtt';
 import { runListeners } from './runner';
 import { logger } from './logger';
+
+/**
+ * Parse emit configuration from args
+ */
+function parseEmitConfig(emit: EmitConfig | undefined): { shouldEmit: boolean; local: boolean; remote: boolean } {
+  if (!emit) {
+    return { shouldEmit: false, local: false, remote: false };
+  }
+  
+  if (typeof emit === 'boolean') {
+    return { shouldEmit: emit, local: emit, remote: emit };
+  }
+  
+  return { 
+    shouldEmit: emit.local || emit.remote, 
+    local: emit.local ?? false, 
+    remote: emit.remote ?? false 
+  };
+}
 
 /**
  * Create Prisma extension configuration
@@ -44,10 +63,12 @@ export function listenerExtensionConfig(options?: ExtensionOptions) {
       query, 
       model 
     }: any) {
-      const doEmit = Boolean((args as any).emit);
+      const emitOpts = parseEmitConfig((args as any).emit);
       delete (args as any).emit;
       const result = await query(args);
-      if (doEmit) await runListeners(model, args, result, 'update');
+      if (emitOpts.shouldEmit) {
+        await runListeners(model, args, result, 'update', { local: emitOpts.local, remote: emitOpts.remote });
+      }
       return result;
     };
   }
@@ -59,10 +80,12 @@ export function listenerExtensionConfig(options?: ExtensionOptions) {
       query, 
       model 
     }: any) {
-      const doEmit = Boolean((args as any).emit);
+      const emitOpts = parseEmitConfig((args as any).emit);
       delete (args as any).emit;
       const result = await query(args);
-      if (doEmit) await runListeners(model, args, result, 'updateMany');
+      if (emitOpts.shouldEmit) {
+        await runListeners(model, args, result, 'updateMany', { local: emitOpts.local, remote: emitOpts.remote });
+      }
       return result;
     };
   }
@@ -74,10 +97,12 @@ export function listenerExtensionConfig(options?: ExtensionOptions) {
       query, 
       model 
     }: any) {
-      const doEmit = Boolean((args as any).emit);
+      const emitOpts = parseEmitConfig((args as any).emit);
       delete (args as any).emit;
       const result = await query(args);
-      if (doEmit) await runListeners(model, args, result, 'create');
+      if (emitOpts.shouldEmit) {
+        await runListeners(model, args, result, 'create', { local: emitOpts.local, remote: emitOpts.remote });
+      }
       return result;
     };
   }
@@ -89,10 +114,12 @@ export function listenerExtensionConfig(options?: ExtensionOptions) {
       query, 
       model 
     }: any) {
-      const doEmit = Boolean((args as any).emit);
+      const emitOpts = parseEmitConfig((args as any).emit);
       delete (args as any).emit;
       const result = await query(args);
-      if (doEmit) await runListeners(model, args, result, 'upsert');
+      if (emitOpts.shouldEmit) {
+        await runListeners(model, args, result, 'upsert', { local: emitOpts.local, remote: emitOpts.remote });
+      }
       return result;
     };
   }

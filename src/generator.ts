@@ -130,9 +130,6 @@ async function patchGeneratedModels(
       if (patched > 0) {
         console.log(`✅ Patched ${patched} operation${patched > 1 ? 's' : ''} in index.d.ts`);
         return;
-      } else {
-        console.log(`ℹ️  No operations to patch in index.d.ts`);
-        return;
       }
     } catch {
       continue;
@@ -260,7 +257,7 @@ async function patchModelFile(filePath: string, modelName: string): Promise<numb
     // Insert emit before the closing brace
     const beforeClosing = content.substring(0, closeBraceIndex);
     const afterClosing = content.substring(closeBraceIndex);
-    const emitField = '\n  /**\n   * Patched by prisma-extension-emitter\n   */\n  emit?: boolean\n';
+    const emitField = '\n  /**\n   * Patched by prisma-extension-emitter\n   * @param emit - Either boolean (emit both local and remote) or object {local: boolean, remote: boolean}\n   */\n  emit?: boolean | { local: boolean; remote: boolean }\n';
     
     content = beforeClosing + emitField + afterClosing;
     patchedCount++;
@@ -333,7 +330,7 @@ async function patchIndexDtsFile(filePath: string, models: string[]): Promise<nu
           // Insert emit before the closing brace
           const beforeClosing = content.substring(0, closeBraceIndex);
           const afterClosing = content.substring(closeBraceIndex);
-          const emitField = '\n    /**\n     * Emit events for this operation (added by prisma-extension-emitter)\n     */\n    emit?: boolean\n  ';
+          const emitField = '\n    /**\n     * Emit events for this operation (added by prisma-extension-emitter)\n     * @param emit - Either boolean (emit both local and remote) or object {local: boolean, remote: boolean}\n     */\n    emit?: boolean | { local: boolean; remote: boolean }\n  ';
           
           content = beforeClosing + emitField + afterClosing;
           patchedCount++;

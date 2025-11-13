@@ -11,6 +11,51 @@ let mqttConfig: MqttConfig | null = null;
 // Track MQTT subscriptions
 const mqttSubscriptions: Map<string, Set<ListenerConfig<any>>> = new Map();
 
+// Track recently processed local events to avoid duplicates when they come back via MQTT
+const processedLocalEvents: Map<string, number> = new Map();
+const EVENT_DEDUP_TTL = 5000; // 5 seconds
+
+/**
+ * Generate a unique event ID for deduplication
+ */
+function generateEventId(model: string, operation: string, args: any, result: any): string {
+  // Create a simple hash-like ID from the event data
+  const data = JSON.stringify({ model, operation, args, result });
+  // Use a simple hash or just use the stringified data (shortened)
+  return Buffer.from(data).toString('base64').substring(0, 64);
+}
+
+/**
+ * Mark an event as processed locally
+ */
+function markEventAsProcessed(eventId: string): void {
+  const now = Date.now();
+  processedLocalEvents.set(eventId, now);
+  
+  // Clean up old entries
+  for (const [id, timestamp] of processedLocalEvents.entries()) {
+    if (now - timestamp > EVENT_DEDUP_TTL) {
+      processedLocalEvents.delete(id);
+    }
+  }
+}
+
+/**
+ * Check if an event was recently processed locally
+ */
+function wasProcessedLocally(eventId: string): boolean {
+  const timestamp = processedLocalEvents.get(eventId);
+  if (!timestamp) return false;
+  
+  const now = Date.now();
+  if (now - timestamp > EVENT_DEDUP_TTL) {
+    processedLocalEvents.delete(eventId);
+    return false;
+  }
+  
+  return true;
+}
+
 /**
  * Initialize MQTT publisher client
  */
@@ -53,12 +98,17 @@ export async function publishToMqtt(
   const topicPrefix = mqttConfig.topicPrefix || 'prisma/events';
   const topic = `${topicPrefix}/${model}/${operation}`;
   
+  // Generate event ID and mark as processed locally
+  const eventId = generateEventId(model, operation, args, result);
+  markEventAsProcessed(eventId);
+  
   const payload: MqttEventPayload = {
     model,
     operation,
     args,
     result,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    eventId // Add event ID to payload for deduplication
   };
   
   return new Promise<void>((resolve, reject) => {
@@ -118,7 +168,13 @@ function ensureSubscriberInitialized(): void {
 function handleMqttMessage(topic: string, message: Buffer): void {
   try {
     const event: MqttEventPayload = JSON.parse(message.toString());
-    const { model, args, result } = event;
+    const { model, args, result, eventId } = event;
+    
+    // Check if this event was already processed locally (deduplication)
+    if (eventId && wasProcessedLocally(eventId)) {
+      logger.debug(`Skipping duplicate event ${eventId} - already processed locally`);
+      return;
+    }
     
     // Get subscribers for this topic
     const subscribers = mqttSubscriptions.get(topic);
@@ -130,7 +186,7 @@ function handleMqttMessage(topic: string, message: Buffer): void {
     subscribers.forEach(async (config) => {
       if (matches(config, args)) {
         try {
-          await config.listener({ args, model, result });
+          await config.listener({ args, model, result, source: 'remote' });
         } catch (err) {
           logger.error(`Remote listener for ${model} failed`, err);
         }

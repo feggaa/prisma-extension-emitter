@@ -4,7 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/prisma-extension-emitter)](https://www.npmjs.com/package/prisma-extension-emitter)
 [![license](https://img.shields.io/npm/l/prisma-extension-emitter)](https://github.com/feggaa/prisma-extension-emitter/blob/main/LICENSE)
 
-**Version 2.0.7**
+**Version 2.1.9**
 
 A lightweight Prisma extension for registering conditional listeners and emitting events on any model's CRUD operations.
 

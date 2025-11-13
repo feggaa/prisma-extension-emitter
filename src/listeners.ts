@@ -35,19 +35,26 @@ export function matches<T>(config: ListenerConfig<T>, args: any): boolean {
 
 /**
  * Execute local listeners for a model
+ * @param source - Indicates whether the event is 'local' or 'remote'
  */
 export async function executeLocalListeners<T>(
   model: ModelNames,
   args: any,
-  result: T
+  result: T,
+  source: 'local' | 'remote' = 'local'
 ): Promise<void> {
   const configs = listeners[model];
   if (!configs) return;
 
   for (const cfg of configs) {
+    // Skip if remoteOnly is true and source is local
+    if (cfg.remoteOnly && source === 'local') {
+      continue;
+    }
+    
     if (matches(cfg, args)) {
       try {
-        await cfg.listener({ args, model, result });
+        await cfg.listener({ args, model, result, source });
       } catch (err) {
         logger.error(`Listener for ${model} failed`, err);
       }

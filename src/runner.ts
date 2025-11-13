@@ -6,21 +6,30 @@ import { logger } from './logger';
 
 /**
  * Run both local listeners and publish to MQTT
+ * @param local - Whether to run local listeners (default: true)
+ * @param remote - Whether to publish to MQTT (default: true)
  */
 export async function runListeners<T>(
   model: ModelNames,
   args: any,
   result: T,
-  operation: string = 'unknown'
+  operation: string = 'unknown',
+  options: { local?: boolean; remote?: boolean } = {}
 ): Promise<void> {
-  // Run local listeners
-  const camelizedModel = camelizeIt(model);
-  await executeLocalListeners(camelizedModel as ModelNames, args, result);
+  const { local = true, remote = true } = options;
   
-  // Publish to MQTT if configured
-  try {
-    await publishToMqtt(model, args, result, operation);
-  } catch (err) {
-    logger.error(`MQTT publish for ${model} failed`, err);
+  // Run local listeners if enabled
+  if (local) {
+    const camelizedModel = camelizeIt(model);
+    await executeLocalListeners(camelizedModel as ModelNames, args, result, 'local');
+  }
+  
+  // Publish to MQTT if configured and enabled
+  if (remote) {
+    try {
+      await publishToMqtt(model, args, result, operation);
+    } catch (err) {
+      logger.error(`MQTT publish for ${model} failed`, err);
+    }
   }
 }
