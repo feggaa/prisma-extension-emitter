@@ -1,3 +1,6 @@
 /node_modules
 /dist
 *.tgz
+/test
+src/index.ts.backup
+.DS_Store

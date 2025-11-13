@@ -5,6 +5,8 @@ import { generateTypes } from './generator';
 
 async function main() {
   const argv = yargs(hideBin(process.argv))
+    .version('2.0.7')
+    .alias('v', 'version')
     .command(
       'generate',
       'Generate prisma-emit type augmentations',
@@ -12,7 +14,9 @@ async function main() {
         .option('schema', { alias: 's', type: 'string', default: 'prisma/schema.prisma' })
         .option('output', { alias: 'o', type: 'string', default: 'types' })
     )
+    .demandCommand(1, 'You need to specify a command. Use --help to see available commands.')
     .help()
+    .alias('h', 'help')
     .parseSync();
 
   const schemaPath = String(argv.schema);

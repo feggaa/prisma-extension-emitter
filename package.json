@@ -1,6 +1,6 @@
 {
   "name": "prisma-extension-emitter",
-  "version": "1.3.2",
+  "version": "2.0.7",
   "bin": {
     "prisma-emitter": "dist/cli.js"
   },
@@ -17,20 +17,31 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc && tsc -p tsconfig.cli.json",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "postinstall": "prisma-emitter generate || true",
+    "test:mqtt": "ts-node test/mqtt-server-test.ts",
+    "test:mqtt:publish": "ts-node test/mqtt-server-test.ts publish",
+    "test:mqtt:remote": "ts-node test/mqtt-server-test.ts remote",
+    "test:mqtt:multi": "ts-node test/mqtt-server-test.ts multi",
+    "test:mqtt:filter": "ts-node test/mqtt-server-test.ts filter"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "peerDependencies": {
     "@prisma/client": ">=4.0.0"
   },
   "dependencies": {
     "@prisma/internals": "^4.0.0",
+    "mqtt": "^5.14.1",
     "yargs": "^17.0.0"
   },
   "devDependencies": {
-    "ts-node": "^10.0.0",
-    "@types/yargs": "^17.0.0",
+    "@types/mqtt": "^0.0.34",
     "@types/node": "^18.0.0",
+    "@types/yargs": "^17.0.0",
+    "dotenv": "^17.2.3",
+    "ts-node": "^10.0.0",
     "typescript": "^5.0.0"
   },
   "keywords": [
