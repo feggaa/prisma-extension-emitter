@@ -56,73 +56,69 @@ export function listenerExtensionConfig(options?: ExtensionOptions) {
     },
   };
 
-  // Add update method if enabled
-  if (emitConfig.emitOnUpdate) {
-    (extensionConfig.query!.$allModels as any).update = async function({ 
-      args, 
-      query, 
-      model 
-    }: any) {
-      const emitOpts = parseEmitConfig((args as any).emit);
-      delete (args as any).emit;
-      const result = await query(args);
-      if (emitOpts.shouldEmit) {
-        await runListeners(model, args, result, 'update', { local: emitOpts.local, remote: emitOpts.remote });
-      }
-      return result;
-    };
-  }
+  // Add update method
+  (extensionConfig.query!.$allModels as any).update = async function({ 
+    args, 
+    query, 
+    model 
+  }: any) {
+    if (!('emit' in args) && !emitConfig.emitOnUpdate) return query(args);
+    const emitOpts = parseEmitConfig((args as any).emit);
+    delete (args as any).emit;
+    const result = await query(args);
+    if (emitOpts.shouldEmit) {
+      runListeners(model, args, result, 'update', { local: emitOpts.local, remote: emitOpts.remote });
+    }
+    return result;
+  };
 
-  // Add updateMany method if enabled
-  if (emitConfig.emitOnUpdateMany) {
-    (extensionConfig.query!.$allModels as any).updateMany = async function({ 
-      args, 
-      query, 
-      model 
-    }: any) {
-      const emitOpts = parseEmitConfig((args as any).emit);
-      delete (args as any).emit;
-      const result = await query(args);
-      if (emitOpts.shouldEmit) {
-        await runListeners(model, args, result, 'updateMany', { local: emitOpts.local, remote: emitOpts.remote });
-      }
-      return result;
-    };
-  }
+  // Add updateMany method
+  (extensionConfig.query!.$allModels as any).updateMany = async function({ 
+    args, 
+    query, 
+    model 
+  }: any) {
+    if (!('emit' in args) && !emitConfig.emitOnUpdateMany) return query(args);
+    const emitOpts = parseEmitConfig((args as any).emit);
+    delete (args as any).emit;
+    const result = await query(args);
+    if (emitOpts.shouldEmit) {
+      runListeners(model, args, result, 'updateMany', { local: emitOpts.local, remote: emitOpts.remote });
+    }
+    return result;
+  };
 
-  // Add create method if enabled
-  if (emitConfig.emitOnCreate) {
-    (extensionConfig.query!.$allModels as any).create = async function({ 
-      args, 
-      query, 
-      model 
-    }: any) {
-      const emitOpts = parseEmitConfig((args as any).emit);
-      delete (args as any).emit;
-      const result = await query(args);
-      if (emitOpts.shouldEmit) {
-        await runListeners(model, args, result, 'create', { local: emitOpts.local, remote: emitOpts.remote });
-      }
-      return result;
-    };
-  }
+  // Add create method
+  (extensionConfig.query!.$allModels as any).create = async function({ 
+    args, 
+    query, 
+    model 
+  }: any) {
+    if (!('emit' in args) && !emitConfig.emitOnCreate) return query(args);
+    const emitOpts = parseEmitConfig((args as any).emit);
+    delete (args as any).emit;
+    const result = await query(args);
+    if (emitOpts.shouldEmit) {
+      runListeners(model, args, result, 'create', { local: emitOpts.local, remote: emitOpts.remote });
+    }
+    return result;
+  };
 
-  // Add upsert method if enabled
-  if (emitConfig.emitOnUpsert) {
-    (extensionConfig.query!.$allModels as any).upsert = async function({ 
-      args, 
-      query, 
-      model 
-    }: any) {
-      const emitOpts = parseEmitConfig((args as any).emit);
-      delete (args as any).emit;
-      const result = await query(args);
-      if (emitOpts.shouldEmit) {
-        await runListeners(model, args, result, 'upsert', { local: emitOpts.local, remote: emitOpts.remote });
-      }
-      return result;
-    };
-  }
+  // Add upsert method
+  (extensionConfig.query!.$allModels as any).upsert = async function({ 
+    args, 
+    query, 
+    model 
+  }: any) {
+    if (!('emit' in args) && !emitConfig.emitOnUpsert) return query(args);
+    const emitOpts = parseEmitConfig((args as any).emit);
+    delete (args as any).emit;
+    const result = await query(args);
+    if (emitOpts.shouldEmit) {
+      runListeners(model, args, result, 'upsert', { local: emitOpts.local, remote: emitOpts.remote });
+    }
+    return result;
+  };
 
   return extensionConfig;
 }
